@@ -4,7 +4,7 @@
 
 To try it out, use the following code snippet in neovim.
 
-```(lua)
+```lua
 
 local lspconfig = require("lspconfig")
 local configs = require("lspconfig.configs")
