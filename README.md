@@ -12,4 +12,6 @@
 - [ ] Look-up variable value and possibly doc-string
 - [ ] Go to references of a variable
 - [ ] Go to the definition of a variable
+- [ ] [python] Go to the definition of a variable
 - [ ] Unroll the hydra file into the resulting config given inheritance and variables
+- [ ] [python] some kind mypy extensions to check types and possible runtime errors
