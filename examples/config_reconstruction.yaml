@@ -1,0 +1,76 @@
+defaults:
+  - config_materials
+  - _self_
+
+paths:
+  # Specular: VAE-KL F-4
+  # vae_cfg_path: models/first_stage_models/kl-f4-materials/config-specular.yaml
+  # vae_old_wt_path: None
+  # vae_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials-specular/last.ckpt
+
+  # Metallic: VAE-KL F-4
+  vae_cfg_path: models/first_stage_models/kl-f4-materials/config-metallic.yaml
+  vae_old_wt_path: None
+  vae_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials-metallic/last.ckpt
+
+  # Reconstruction
+  ldm_cfg_path: models/ldm/reconstruction/config.yaml
+  ldm_old_wt_path: ${local_path}/latent-diffusion/models/ldm/reconstruction/start.ckpt
+  ldm_wt_path: ${local_path}/latent-diffusion/models/ldm/reconstruction/last-v2.ckpt
+
+train_schedule:
+  vae:
+    train: True
+    unfreeze_epoch: -1 #SET -1 TO SKIP OLD WEIGHTS
+    type: "reconstruction" # 'reconstruction' indicates that encoder is for materials (raw, not renders)
+    version: 400
+    cont: False #CONTINUE TRAINING
+  ldm:
+    train: False
+    unfreeze_epoch: -1 #SET -1 TO SKIP OLD WEIGHTS
+    type: "reconstruction"
+    version: 303
+    cont: False #CONTINUE TRAINING
+    swa_epoch_start: -1
+
+trainer:
+  max_epochs: 3000
+  default_root_dir: ${local_path}/latent-diffusion/experiments # CHANGE THIS !!!
+  accelerator: gpu
+  # fast_dev_run: 5
+  # for some reason, ddp_find_unused_parameters_false does not work for VAE training
+
+  strategy: "ddp_find_unused_parameters_true"
+  # devices: [0]
+  devices: [0, 1, 2, 3, 4, 5, 6, 7]
+
+  num_sanity_val_steps: 2
+  reload_dataloaders_every_n_epochs: 1
+
+data:
+  aug: True # NOTE: to make basic augmentation (rotate, crop)?
+  specular_aug_pct: .0 # NOTE: chance of swapping diffuse and specular (currently isn't used)
+  perlin_pct: 0.65 # NOTE: probability of materials blending in the batch [0..1]
+  reset_data: True # NOTE: recompute train.flist and val.flist?
+  overwrite: False # WARNING: it will delete previously computed data
+
+  loader:
+    batch_size: 12  
+    num_workers: 12
+    prefetch_factor: 12
+    pin_memory: False
+    persistent_workers: False
+    shuffle: True
+
+  dataset:
+    train:
+      data_root: datasets/materials/train.flist
+      mask_config: { "mask_mode": "bbox" }
+      keys: ["image", "env"]
+      env_root: ${local_path}/datasets/polyhaven_HDRIs/exr_filtered
+
+    val:
+      data_root: datasets/materials/val.flist
+      mask_config: { "mask_mode": "bbox" }
+      keys: ["image", "env"]
+      env_root: ${local_path}/datasets/polyhaven_HDRIs/exr_filtered

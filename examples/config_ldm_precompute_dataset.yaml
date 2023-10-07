@@ -1,0 +1,52 @@
+defaults:
+  - config_materials
+  - _self_
+
+paths:
+  # TODO: add VAE for metallic and specular pipelines
+
+  # Specular VAE-KL F-4
+  vae_specular_cfg_path: models/first_stage_models/kl-f4-materials/config-specular.yaml
+  vae_specular_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials-specular/last.ckpt
+
+  # Metallic VAE-KL F-4
+  vae_metallic_cfg_path: models/first_stage_models/kl-f4-materials/config-metallic.yaml
+  vae_metallic_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials-metallic/last.ckpt
+
+data:
+  reneders_path: ${local_path}/datasets/material_tensors/precompute/renders
+  latents_path: ${local_path}/datasets/material_tensors/precompute/latents
+
+  # TO TURN OFF SB SET THIS TO AN EMPTY STRING AND sb_history TO ZERO
+  sampling_prob_path: "" #sampling_prob_sr.pt
+
+  aug: True # NOTE: to make basic augmentation (rotate, crop)?
+  specular_aug_pct: .0 # NOTE: chance of swapping diffuse and specular (currently isn't used)
+  perlin_pct: 0.35 # NOTE: probability of materials blending in the batch [0..1]
+  reset_data: True # NOTE: recompute train.flist and val.flist?
+  overwrite: False # WARNING: it will delete previously computed data
+
+  # NOTE: will convert and process (VAE in particular) input tensors as for metallness PBR pipeline (specular if False)
+  metallic_pipeline: False
+
+  loader:
+    batch_size: 2
+    num_workers: 1
+    prefetch_factor: 1
+    shuffle: False
+
+  dataset:
+    train:
+      data_root: datasets/materials/train.flist
+      mask_config: { "mask_mode": "bbox" }
+      keys: ["image", "env"]
+      env_root: ${local_path}/datasets/polyhaven_HDRIs/exr_filtered
+      image_size: [256, 256]
+      # data_len: 10  # NOTE: limit the size of input data (for testing purposes)
+
+    val:
+      data_root: datasets/materials/val.flist
+      mask_config: { "mask_mode": "bbox" }
+      keys: ["image", "env"]
+      env_root: ${local_path}/datasets/polyhaven_HDRIs/exr_filtered
+      image_size: [256, 256]

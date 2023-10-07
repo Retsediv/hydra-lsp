@@ -1,0 +1,93 @@
+defaults:
+  - config_materials
+  - _self_
+
+paths:
+  # VAE RENDERS
+  render:
+    vae_cfg_path: models/first_stage_models/kl-f4-renders/config.yaml
+    vae_old_wt_path: None
+    vae_new_wt_path: models/first_stage_models/kl-f4-renders/last.ckpt
+
+  specular:
+    # Specular: VAE-KL F-4
+    textures:
+      vae_cfg_path: models/first_stage_models/kl-f4-materials/config-specular.yaml
+      vae_old_wt_path: None
+      vae_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials/last.ckpt
+
+    # REC LITE Concat
+    ldm_cfg_path: models/ldm/rec_lite_concat/config-specular.yaml
+    ldm_old_wt_path: None # ${local_path}/latent-diffusion/models/ldm/rec_lite/start.ckpt
+    ldm_wt_path: ${local_path}/latent-diffusion/models/ldm/rec_lite/last-v321.ckpt
+
+  metallic:
+    # Metallic: VAE-KL F-4
+    textures:
+      vae_cfg_path: models/first_stage_models/kl-f4-materials/config-metallic.yaml
+      vae_old_wt_path: None
+      vae_new_wt_path: ${local_path}/latent-diffusion/models/first_stage_models/kl-f4-materials-metallic/last.ckpt
+
+    # REC LITE Concat
+    ldm_cfg_path: models/ldm/rec_lite_concat/config-metallic.yaml
+    ldm_old_wt_path: None
+    ldm_wt_path: ${local_path}/latent-diffusion/models/ldm/rec_lite_metallic/last.ckpt
+
+train_schedule:
+  vae:
+    train: False
+    unfreeze_epoch: -1 #SET -1 TO SKIP OLD WEIGHTS
+    type: "reconstruction"
+    version: 291
+    cont: False #CONTINUE TRAINING
+  ldm:
+    train: True
+    unfreeze_epoch: -1 #SET -1 TO SKIP OLD WEIGHTS
+    type: "reconstruction"
+    version: 400 # NOTE: replace with the actual one
+    cont: False #CONTINUE TRAINING
+    swa_epoch_start: -1
+
+trainer:
+  max_epochs: 1000
+  default_root_dir: ${local_path}/latent-diffusion/experiments # CHANGE THIS !!!
+  accelerator: gpu
+  # fast_dev_run: 5
+  strategy: ddp #ddp_find_unused_parameters_false
+  # devices: [0, 1, 2, 3, 4, 5, 6, 7]
+  devices: [0]
+  # num_sanity_val_steps: 1
+  #TODO this is necessary to sample new dataset from the precomputed one but it's likely the cause of "too many open files" bug which happens every ~38 epochs
+  reload_dataloaders_every_n_epochs: 1
+  check_val_every_n_epoch: 2
+
+data:
+  metalness: True
+
+  loader:
+    batch_size: 2
+    # batch_size: 20 # ldm
+    # batch_size: 6 # vae
+    num_workers: 2
+    prefetch_factor: 2
+    pin_memory: False
+    persistent_workers: False #True
+
+  dataset:
+    train:
+      data_root: datasets/materials/train.flist
+      reneders_path: ${local_path}/datasets/material_tensors/precompute/renders_metallic
+      latents_path: ${local_path}/datasets/material_tensors/precompute/latents_metallic
+      # reneders_path: ${local_path}/datasets/material_tensors/precompute_normalized/renders
+      # latents_path: ${local_path}/datasets/material_tensors/precompute_normalized/latents
+      keys: ["image", "latent"]
+      image_size: [256, 256]
+
+    val:
+      data_root: datasets/materials/val.flist
+      reneders_path: ${local_path}/datasets/material_tensors/precompute/renders_metallic
+      latents_path: ${local_path}/datasets/material_tensors/precompute/latents_metallic
+      # reneders_path: ${local_path}/datasets/material_tensors/precompute_normalized/renders
+      # latents_path: ${local_path}/datasets/material_tensors/precompute_normalized/latents
+      keys: ["image", "latent"]
+      image_size: [256, 256]
