@@ -9,8 +9,13 @@ from lsprotocol.types import (
 
 import logging
 
-logging.basicConfig(filename='/tmp/mylsp.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(
+    filename="/tmp/mylsp.log",
+    filemode="w",
+    level=logging.DEBUG,
+)
 server = LanguageServer("hydralsp", "v0.1")
+
 
 @server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","]))
 def completions(params: CompletionParams) -> CompletionList:
@@ -34,10 +39,12 @@ def completions(params: CompletionParams) -> CompletionList:
         items=items,
     )
 
+
 def main() -> None:
     logging.debug("Starting hydra-lsp server")
     server.start_io()  # good for production
     # server.start_tcp('127.0.0.1', 8080)  # good for debugging
+
 
 if __name__ == "__main__":
     main()
