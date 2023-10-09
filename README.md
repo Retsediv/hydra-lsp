@@ -28,7 +28,7 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 
 #### To-Do
 
-- [ ] Setup lsprotocol and pygls, see how it works
+- [x] Setup lsprotocol and pygls, see how it works
 - [ ] Go through hydra documentation and double check its features
 - [ ] Parse a single yaml (do not account for inheritance)
 - [ ] Inheritance support
@@ -37,6 +37,8 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 #### Set of features to implement
 
 - [ ] Look-up variable value and possibly doc-string
+- [ ] Check the validity of variables names
+- [ ] Autocomplete variable name
 - [ ] Go to references of a variable
 - [ ] Go to the definition of a variable
 - [ ] [python] Go to the definition of a variable
