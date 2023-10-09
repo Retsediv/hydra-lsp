@@ -9,8 +9,7 @@ from lsprotocol.types import (
 
 import logging
 
-logging.basicConfig(filename='/tmp/mylsp.log', filemode='w', level=logging.DEBUG,
-                    format='{time:HH:mm:ss.SSS} ({name}:{function}:{line}) - {message}')
+logging.basicConfig(filename='/tmp/mylsp.log', filemode='w', level=logging.DEBUG)
 server = LanguageServer("hydralsp", "v0.1")
 
 @server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","]))
