@@ -5,10 +5,17 @@ from importlib import metadata
 
 from hydra_lsp.server import server
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger('pygls.protocol').setLevel(logging.DEBUG)
+logging.basicConfig(
+    filename='/tmp/mylsp.log',
+    filemode='w',     
+    format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+    datefmt="%d/%b/%Y %H:%M:%S",
+)
+logging.getLogger('pygls.protocol').setLevel(logging.WARN)
 
-def main():
+def main() -> None:
+    """Hydra-lsp entry point."""
+
     parser = argparse.ArgumentParser()
     parser.description = 'Hydra Language Server Protocol implementation'
 
@@ -48,9 +55,12 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger('pygls.protocol').setLevel(logging.DEBUG)
 
+    logging.info("Starting hydra-lsp server")
     if args.tcp:
+        logging.info(f"Starting TCP server on {args.host}:{args.port}")
         server.start_tcp(args.host, args.port)
     else:
+        logging.info("Starting stdio server")
         server.start_io()
 
 if __name__ == '__main__':
