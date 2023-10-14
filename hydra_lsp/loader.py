@@ -20,16 +20,20 @@ def load_yaml_config(config_path: str) -> Dict:
         return {}
 
     # Recursively load default file (config inheritance)
+    result = {}
     if "defaults" in data:
         base_folder = "/".join(config_path.split("/")[:-1])
 
         for default_file_path in data["defaults"]:
+            # TODO: Account for _self_ position in defaults list
+            if default_file_path == "_self_":
+                continue
+
             default_file_path = os.path.join(base_folder, f"{default_file_path}.yaml")
             default_data = load_yaml_config(default_file_path)
+            result.update(default_data)
 
-            default_data.update(data)
-            data = default_data
-
+    data.update(result)
     return data
 
 

@@ -10,48 +10,38 @@
     probes: datasets/polyhaven_HDRIs/exr/1k
 
   trainer:
-    default_root_dir: ${local_path}/latent-diffusion/experiments # CHANGE THIS !!!
+    default_root_dir: ${local_path}/latent-diffusion/experiments
     accelerator: gpu
-    # devices: -1 #[0]
     max_epochs: 200
     check_val_every_n_epoch: 1
     num_sanity_val_steps: 0
-    # precision: 16
 
   data:
-    # val_pct: 0.5 # debug
-    # data_path: ${local_path}/datasets/test/tensors
     data_path: ${local_path}/datasets/material_tensors/tensors
     val_pct: 0.05
     original_image_size: [1024, 1024]
     nb_chn : 10
-    nb_chn_label : 0 #3 # SET THIS TO ZERO WHEN NOT PROCESSING CONDITION TOGETHER WITH INPUT
+    nb_chn_label: 0
     aug: true
-    # TO TURN OFF SB SET THIS TO AN EMPTY STRING AND sb_history TO ZERO
     sampling_prob_path: ''
-    reset_data: false # Enable to make new lists of files
-    canny_aug: 0.0 #TODO: is this still used
+    reset_data: false
+    canny_aug: 0.0
     loader:  
-      batch_size: 5 #2 # When less than three, will add blending input batch
-      # shuffle: False
-      pin_memory: True #False
+      batch_size: 5
+      pin_memory: True
       num_workers: 5
       drop_last: True
-      persistent_workers: True #False #True
+      persistent_workers: True
       prefetch_factor: 5
 
     dataset:
       train:
-        # mask_config: {'mask_mode':'hybrid'}
-        # data_len: 100 # debug
         data_len: -1
         image_size: [256, 256]
-        keys: ['image', 'path'] #['image']
+        keys: ['image', 'path']
         env_root: ''
       val:
-        # mask_config: {'mask_mode':'hybrid'}
-        # data_len: 100 # debug
         data_len: -1
         image_size: [256, 256]
-        keys: ['image', 'path'] #['image']
+        keys: ['image', 'path']
         env_root: ''
