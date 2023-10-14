@@ -33,25 +33,16 @@ def load_yaml_config(config_path: str) -> Dict:
     return data
 
 
-class ConfigLoader:
+class HydraConfig:
     """
-    Load a Hydra YAML config file, looks for _defaults and loads respective files
     Stores: YAML keys and values pairs
-
-    NOTE: This is a very simple implementation, should be extended to support more features
     """
 
-    def __init__(self, config_path: str):
-        self.config_path: str = config_path
-        self.config: Dict = {}
-        self.reload()
+    def __init__(self, config: Dict):
+        self.config = config
 
-    def reload(self) -> None:
-        """
-        Reload the config from the file
-        """
-        self.config = load_yaml_config(self.config_path)
-        logger.info(f"Reloaded config: {self.config}")
+    def set(self, key: str, value: str):
+        raise NotImplementedError
 
     def get(self, key: str):
         """
@@ -72,10 +63,29 @@ class ConfigLoader:
         return value
 
 
-if __name__ == "__main__":
-    config_loader = ConfigLoader("examples/config_ldm_precompute_dataset.yaml")
-    print(json.dumps(config_loader.config, indent=2))
+class ConfigLoader:
+    """
+    Load a Hydra YAML config file, looks for _defaults and loads respective files
 
-    print("data: ", config_loader.get("data"))
-    print("data.loader: ", config_loader.get("data.loader"))
-    print("data.loader.batch_size: ", config_loader.get("data.loader.batch_size"))
+    NOTE: This is a very simple implementation, should be extended to support more features
+    """
+
+    def __init__(self):
+        pass
+
+    def load(self, config_path: str) -> HydraConfig:
+        """
+        Load the config from the file
+        """
+        logger.info(f"Loaded config: {config_path}")
+        return HydraConfig(load_yaml_config(config_path))
+
+
+if __name__ == "__main__":
+    config_loader = ConfigLoader()
+    config = config_loader.load("examples/config_ldm_precompute_dataset.yaml")
+    print(json.dumps(config.config, indent=2))
+
+    print("data: ", config.get("data"))
+    print("data.loader: ", config.get("data.loader"))
+    print("data.loader.batch_size: ", config.get("data.loader.batch_size"))

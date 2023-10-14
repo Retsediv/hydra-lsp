@@ -5,18 +5,26 @@ from lsprotocol import types as lsp_types
 from lsprotocol.types import CompletionItem, CompletionList, CompletionOptions
 from pygls.server import LanguageServer
 
+from hydra_lsp.hover import Hover
+from hydra_lsp.loader import ConfigLoader
+
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # TODO: it's temporary
+logger.setLevel(logging.DEBUG)  # TODO: DEBUG level is temporary
+
 
 class HydraLSP(LanguageServer):
-    CONFIGURATION_SECTION = 'hydralsp'
+    CONFIGURATION_SECTION: str = "hydralsp"
 
-    COMMAND_EVALUATE_LINE = 'hydralsp.evaluate_line'
-    COMMAND_EVALUATE_SELECTION = 'hydralsp.evaluate_selection'
+    COMMAND_EVALUATE_LINE: str = "hydralsp.evaluate_line"
+    COMMAND_EVALUATE_SELECTION: str = "hydralsp.evaluate_selection"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.config_loaded: ConfigLoader = ConfigLoader()
+
+        self.hoverer: Hover = Hover(self)
+        self.debug_hover: bool = True
 
 
 server = HydraLSP("hydralsp", "v0.1")
@@ -27,11 +35,13 @@ def initialize(ls: HydraLSP, params: lsp_types.InitializeParams) -> None:
     """Connection is initialized."""
     logger.info("Server is initialized")
 
+
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_OPEN)
 def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
     """Document opened."""
     logger.info(f"Document opened: {params.text_document.uri}")
     # TODO: perform diagnostics
+
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_CHANGE)
 def did_change(ls: HydraLSP, params: lsp_types.DidChangeTextDocumentParams) -> None:
@@ -39,14 +49,18 @@ def did_change(ls: HydraLSP, params: lsp_types.DidChangeTextDocumentParams) -> N
     logger.info(f"Document changed: {params.text_document.uri}")
     # TODO: perform diagnostics (should it be done on every change?)
 
+
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_SAVE)
 def did_save(ls: HydraLSP, params: lsp_types.DidSaveTextDocumentParams) -> None:
     """Document saved."""
     logger.info(f"Document saved: {params.text_document.uri}")
     # TODO: decide if diagnostics should be performed on save
 
+
 @server.feature(lsp_types.TEXT_DOCUMENT_DEFINITION)
-def definition(ls: HydraLSP, params: lsp_types.TextDocumentPositionParams) -> lsp_types.Location | None:
+def definition(
+    ls: HydraLSP, params: lsp_types.TextDocumentPositionParams
+) -> lsp_types.Location | None:
     """Definition of a symbol."""
     logger.info(f"Definition feature is called with params: {params}")
 
@@ -59,13 +73,17 @@ def definition(ls: HydraLSP, params: lsp_types.TextDocumentPositionParams) -> ls
         ),
     )
 
+
 @server.feature(lsp_types.TEXT_DOCUMENT_REFERENCES)
-def references(ls: HydraLSP, params: lsp_types.ReferenceParams) -> list[lsp_types.Location] | None:
+def references(
+    ls: HydraLSP, params: lsp_types.ReferenceParams
+) -> list[lsp_types.Location] | None:
     """Provide a list of references for the symbol at the current cursor position."""
     logger.info(f"References feature is called with params: {params}")
     # TODO: implement
 
     return []
+
 
 @server.feature(lsp_types.TEXT_DOCUMENT_HOVER)
 def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None:
@@ -77,7 +95,10 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
         contents="Hello world from hydra-lsp",
     )
 
-@server.feature(lsp_types.TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","]))
+
+@server.feature(
+    lsp_types.TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","])
+)
 def completions(params: lsp_types.CompletionParams) -> CompletionList:
     logger.info("")
     logger.info("Completions feature is called")
@@ -101,12 +122,14 @@ def completions(params: lsp_types.CompletionParams) -> CompletionList:
         items=items,
     )
 
+
 @server.command(HydraLSP.COMMAND_EVALUATE_LINE)
 def evaluate_line(ls: HydraLSP, params: List[Any]) -> None:
     """Evaluate line under the cursor."""
     logger.info(f"Evaluate line command is called with params: {params}")
 
     # TODO: implement
+
 
 @server.command(HydraLSP.COMMAND_EVALUATE_SELECTION)
 def evaluate_selection(ls: HydraLSP, params: List[Any]) -> None:
