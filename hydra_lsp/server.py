@@ -91,9 +91,7 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     logger.info(f"Hover feature is called with params: {params}")
 
     # TODO: implement
-    return lsp_types.Hover(
-        contents="Hello world from hydra-lsp",
-    )
+    return server.hoverer.get_hover(params)
 
 
 @server.feature(
