@@ -9,6 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 def load_yaml_config(config_path: str) -> Dict:
+    if config_path.startswith("file://"):
+        config_path = config_path[len("file://") :]
+
     logger.info("Loading config from: {}".format(config_path))
 
     try:
@@ -30,7 +33,7 @@ def load_yaml_config(config_path: str) -> Dict:
                 continue
 
             default_file_path = os.path.join(base_folder, f"{default_file_path}.yaml")
-            default_data = load_yaml_config(default_file_path)
+            default_data = nfig(default_file_path)
             result.update(default_data)
 
     data.update(result)
@@ -82,6 +85,7 @@ class ConfigLoader:
         Load the config from the file
         """
         logger.info(f"Loaded config: {config_path}")
+
         return HydraConfig(load_yaml_config(config_path))
 
 
