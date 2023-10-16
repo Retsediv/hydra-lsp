@@ -6,7 +6,7 @@ from lsprotocol.types import CompletionItem, CompletionList, CompletionOptions
 from pygls.server import LanguageServer
 
 from hydra_lsp.hover import Hover
-from hydra_lsp.loader import ConfigLoader
+from hydra_lsp.loader import ConfigLoader, HydraConfig
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)  # TODO: DEBUG level is temporary
@@ -22,9 +22,15 @@ class HydraLSP(LanguageServer):
         super().__init__(*args, **kwargs)
 
         self.config_loaded: ConfigLoader = ConfigLoader()
+        self.context: HydraConfig | None = None
 
         self.hoverer: Hover = Hover(self)
         self.debug_hover: bool = True
+
+    def reload_config(self, file_path: str) -> None:
+        """Load configuration."""
+        self.context = self.config_loaded.load(file_path)
+        logger.info(f"Context loaded from {file_path}")
 
 
 server = HydraLSP("hydralsp", "v0.1")
@@ -40,6 +46,8 @@ def initialize(ls: HydraLSP, params: lsp_types.InitializeParams) -> None:
 def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
     """Document opened."""
     logger.info(f"Document opened: {params.text_document.uri}")
+
+    server.reload_config(params.text_document.uri)
     # TODO: perform diagnostics
 
 
@@ -47,6 +55,8 @@ def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
 def did_change(ls: HydraLSP, params: lsp_types.DidChangeTextDocumentParams) -> None:
     """Document changed."""
     logger.info(f"Document changed: {params.text_document.uri}")
+
+    # self.reload_config(params.text_document.uri)
     # TODO: perform diagnostics (should it be done on every change?)
 
 
@@ -54,6 +64,8 @@ def did_change(ls: HydraLSP, params: lsp_types.DidChangeTextDocumentParams) -> N
 def did_save(ls: HydraLSP, params: lsp_types.DidSaveTextDocumentParams) -> None:
     """Document saved."""
     logger.info(f"Document saved: {params.text_document.uri}")
+
+    server.reload_config(params.text_document.uri)
     # TODO: decide if diagnostics should be performed on save
 
 
@@ -91,7 +103,7 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     logger.info(f"Hover feature is called with params: {params}")
 
     # TODO: implement
-    return server.hoverer.get_hover(params)
+    return server.hoverer.get_hover(params, server.context, server.debug_hover)
 
 
 @server.feature(
