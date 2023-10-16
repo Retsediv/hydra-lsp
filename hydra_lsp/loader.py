@@ -33,7 +33,7 @@ def load_yaml_config(config_path: str) -> Dict:
                 continue
 
             default_file_path = os.path.join(base_folder, f"{default_file_path}.yaml")
-            default_data = nfig(default_file_path)
+            default_data = load_yaml_config(default_file_path)
             result.update(default_data)
 
     data.update(result)
