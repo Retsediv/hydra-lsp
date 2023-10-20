@@ -1,4 +1,5 @@
 import logging
+from importlib import metadata
 from typing import Any, List
 
 from lsprotocol import types as lsp_types
@@ -32,7 +33,8 @@ class HydraLSP(LanguageServer):
         logger.info(f"Context loaded from {file_path}")
 
 
-server = HydraLSP("hydralsp", "v0.1")
+version = metadata.version("hydra-lsp")
+server = HydraLSP("hydralsp", f"v{version}")
 
 
 @server.feature(lsp_types.INITIALIZED)
