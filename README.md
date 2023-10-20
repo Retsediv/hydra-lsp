@@ -56,7 +56,7 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 
 #### Set of features to implement
 
-- [ ] Look-up variable value and possibly doc-string
+- [x] Look-up variable value and possibly doc-string
 - [ ] Check the validity of variables names
 - [ ] Autocomplete variable name
 - [ ] Go to references of a variable

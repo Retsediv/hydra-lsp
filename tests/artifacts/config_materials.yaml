@@ -1,0 +1,47 @@
+  defaults:
+    - local_path
+    - _self_
+
+  src_data_paths:
+    ambientcg: ${local_path}/datasets/ambientcg
+    polyhaven: ${local_path}/datasets/polyhaven
+    material_scans: ${local_path}/datasets/material_scans
+    radn: ${local_path}/datasets/radn_data/highres_data/train
+    probes: datasets/polyhaven_HDRIs/exr/1k
+
+  trainer:
+    default_root_dir: ${local_path}/latent-diffusion/experiments
+    accelerator: gpu
+    max_epochs: 200
+    check_val_every_n_epoch: 1
+    num_sanity_val_steps: 0
+
+  data:
+    data_path: ${local_path}/datasets/material_tensors/tensors
+    val_pct: 0.05
+    original_image_size: [1024, 1024]
+    nb_chn : 10
+    nb_chn_label: 0
+    aug: true
+    sampling_prob_path: ''
+    reset_data: false
+    canny_aug: 0.0
+    loader:  
+      batch_size: 5
+      pin_memory: True
+      num_workers: 5
+      drop_last: True
+      persistent_workers: True
+      prefetch_factor: 5
+
+    dataset:
+      train:
+        data_len: -1
+        image_size: [256, 256]
+        keys: ['image', 'path']
+        env_root: ''
+      val:
+        data_len: -1
+        image_size: [256, 256]
+        keys: ['image', 'path']
+        env_root: ''
