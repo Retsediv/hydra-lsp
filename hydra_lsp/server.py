@@ -9,7 +9,6 @@ from hydra_lsp.hover import Hover
 from hydra_lsp.loader import ConfigLoader, HydraConfig
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)  # TODO: DEBUG level is temporary
 
 
 class HydraLSP(LanguageServer):

@@ -10,6 +10,7 @@ logging.basicConfig(
     filemode='w',     
     format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
     datefmt="%d/%b/%Y %H:%M:%S",
+    level=logging.DEBUG
 )
 logging.getLogger('pygls.protocol').setLevel(logging.WARN)
 
