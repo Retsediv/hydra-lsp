@@ -1,21 +1,21 @@
 import pytest
 
-from hydra_lsp.loader import ConfigLoader
+from hydra_lsp.parser import ConfigParser
 
 
 @pytest.fixture(autouse=True, scope="session")
 def loader():
-    return ConfigLoader()
+    return ConfigParser()
 
 
-def test_load_config(loader: ConfigLoader):
+def test_load_config(loader: ConfigParser):
     config = loader.load("tests/artifacts/local_path.yaml")
 
     assert config is not None
     assert config.get("local_path") == "/my/mnt/disk"
 
 
-def test_dot_access(loader: ConfigLoader):
+def test_dot_access(loader: ConfigParser):
     config = loader.load("tests/artifacts/config_materials.yaml")
 
     assert config.get("local_path") == "/my/mnt/disk"
@@ -24,7 +24,7 @@ def test_dot_access(loader: ConfigLoader):
     assert config.get("data.loader.pin_memory") is True
 
 
-def test_inheritance(loader: ConfigLoader):
+def test_inheritance(loader: ConfigParser):
     config = loader.load("tests/artifacts/config_ldm_precompute_dataset.yaml")
 
     assert config.get("data.original_image_size") == [1024, 1024]
