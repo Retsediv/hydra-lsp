@@ -6,6 +6,9 @@ from lsprotocol import types as lsp_types
 
 logger = logging.getLogger(__name__)
 
+References = DefaultDict[str, List[lsp_types.Location]]
+Definitions = Dict[str, lsp_types.Location]
+
 
 class HydraContext:
     """
@@ -15,8 +18,8 @@ class HydraContext:
     def __init__(
         self,
         config: Dict,
-        references: DefaultDict[str, List[lsp_types.Location]] = defaultdict(list),
-        definitions: Dict[str, lsp_types.Location] = {},
+        references: References = defaultdict(list),
+        definitions: Definitions = {},
     ):
         self.config = config
         self.references = references

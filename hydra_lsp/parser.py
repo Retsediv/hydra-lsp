@@ -25,7 +25,7 @@ from ruamel.yaml.main import (
     ValueToken,
 )
 
-from hydra_lsp.context import HydraContext
+from hydra_lsp.context import HydraContext, References, Definitions
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,8 @@ class ConfigParser:
 
     def __init__(self, ls: LanguageServer | None = None):
         self.ls = ls
-        self.definitions: Dict[str, lsp_types.Location] = {}
-        self.references: DefaultDict[str, List[lsp_types.Location]] = defaultdict(list)
+        self.definitions: Definitions = {}
+        self.references: References = defaultdict(list)
 
     def _get_raw_file(self, uri: str) -> List[str]:
         if self.ls is None:
