@@ -3,10 +3,9 @@ import logging
 import os
 import re
 from collections import defaultdict
-from typing import DefaultDict, Dict, Generator, List
+from typing import Dict, Generator, List
 
 import ruamel.yaml
-import yaml
 from lsprotocol import types as lsp_types
 from pygls.server import LanguageServer
 from ruamel.yaml.main import (
@@ -25,7 +24,7 @@ from ruamel.yaml.main import (
     ValueToken,
 )
 
-from hydra_lsp.context import HydraContext, References, Definitions
+from hydra_lsp.context import Definitions, HydraContext, References
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,20 @@ def remove_from_base_key(base_key: str):
     return base_key.rsplit(".", 1)[0] if base_key else ""
 
 
+def get_file(
+    ls: LanguageServer | None, uri: str, lines: bool = False
+) -> List[str] | str:
+    if ls is not None:
+        doc = ls.workspace.get_document(uri)
+        return doc.lines if lines else doc.source
+
+    uri = uri[len("file://") :] if uri.startswith("file://") else uri
+    with open(uri) as f:
+        f.seek(0)
+        data = f.readlines()
+    return data if lines else "\n".join(data)
+
+
 # TODO: config has to be reloaded on file change
 # TODO: context has to be global (in respect to the folder)
 class ConfigParser:
@@ -53,34 +66,24 @@ class ConfigParser:
         self.references: References = defaultdict(list)
 
     def _get_raw_file(self, uri: str) -> List[str]:
-        if self.ls is None:
-            uri = uri[len("file://") :] if uri.startswith("file://") else uri
-            with open(uri) as f:
-                f.seek(0)
-                return f.readlines()
+        return get_file(self.ls, uri, lines=True)
 
-        return self.ls.workspace.get_document(uri).lines
-
-    # TODO: replace pyyaml with ruamel.yaml
     def _get_yaml_file(self, uri: str) -> Dict:
-        if self.ls is None:
-            uri = uri[len("file://") :] if uri.startswith("file://") else uri
-            with open(uri) as f:
-                f.seek(0)
-                data = "\n".join(f.readlines())
-            return yaml.safe_load(data)
+        data = get_file(self.ls, uri)
 
-        return yaml.safe_load(self.ls.workspace.get_document(uri).source)
+        try:
+            return ruamel.yaml.safe_load(data)
+        except ruamel.yaml.YAMLError as e:
+            logger.error(f"Error while parsing {uri}: {e}")
+            return {}
 
     def _get_yaml_tokens(self, uri: str) -> Generator:
-        if self.ls is None:
-            uri = uri[len("file://") :] if uri.startswith("file://") else uri
-            with open(uri) as f:
-                f.seek(0)
-                data = "\n".join(f.readlines())
+        data = get_file(self.ls, uri)
+        try:
             return ruamel.yaml.scan(data)
-
-        return ruamel.yaml.scan(self.ls.workspace.get_document(uri).source)
+        except ruamel.yaml.YAMLError as e:
+            logger.error(f"Error while parsing {uri}: {e}")
+            raise GeneratorExit
 
     def _get_location(
         self, node: KeyToken | ValueToken | ScalarToken, filename: str
@@ -125,7 +128,7 @@ class ConfigParser:
             elif t is KeyToken:
                 token = next(tokens)  # now it's ScalarToken
                 assert type(token) is ScalarToken
-
+ 
                 k = append_to_base_key(base_key, token.value)
                 self.definitions[k] = self._get_location(token, filename)
                 prev_key = token.value
