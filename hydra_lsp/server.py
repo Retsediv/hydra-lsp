@@ -6,6 +6,7 @@ from lsprotocol import types as lsp_types
 from lsprotocol.types import CompletionItem, CompletionList, CompletionOptions
 from pygls.server import LanguageServer
 
+from hydra_lsp.autocomplete import Completer
 from hydra_lsp.context import HydraContext
 from hydra_lsp.hover import Hover
 from hydra_lsp.parser import ConfigParser
@@ -27,10 +28,12 @@ class HydraLSP(LanguageServer):
 
         self.hoverer: Hover = Hover(self)
         self.debug_hover: bool = True
+        self.completer: Completer = Completer()
 
     def reload_config(self, file_path: str) -> None:
         """Load configuration."""
         self.context = self.config_loaded.load(file_path)
+        self.completer.update(self.context)
         logger.info(f"Context loaded from {file_path}")
 
 
@@ -103,27 +106,8 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     lsp_types.TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","])
 )
 def completions(params: lsp_types.CompletionParams) -> CompletionList:
-    logger.info("")
     logger.info("Completions feature is called")
-    # TODO: implement
-
-    items = []
-    document = server.workspace.get_document(params.text_document.uri)
-    logger.info(f"Document: {document}")
-
-    current_line = document.lines[params.position.line].strip()
-    logger.info(f"Current line: {current_line}")
-
-    if current_line.endswith("hello,"):
-        items = [
-            CompletionItem(label="world"),
-            CompletionItem(label="friend111"),
-        ]
-
-    return CompletionList(
-        is_incomplete=False,
-        items=items,
-    )
+    return server.completer.get_completions(server, params)
 
 
 @server.command(HydraLSP.COMMAND_EVALUATE_LINE)

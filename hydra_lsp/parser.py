@@ -38,6 +38,9 @@ def append_to_base_key(base_key: str, key: str):
 
 
 def remove_from_base_key(base_key: str):
+    if "." not in base_key:
+        return ""
+
     return base_key.rsplit(".", 1)[0] if base_key else ""
 
 
@@ -128,7 +131,7 @@ class ConfigParser:
             elif t is KeyToken:
                 token = next(tokens)  # now it's ScalarToken
                 assert type(token) is ScalarToken
- 
+
                 k = append_to_base_key(base_key, token.value)
                 self.definitions[k] = self._get_location(token, filename)
                 prev_key = token.value
@@ -145,7 +148,6 @@ class ConfigParser:
                         BlockSequenceStartToken,  # inner block ended
                         FlowSequenceStartToken,  # [
                         FlowSequenceEndToken,  # ]
-                        # FlowEntryToken,  # divider between items in [] or {}
                         FlowMappingStartToken,  # {
                         FlowMappingEndToken,  # }
                     ],
