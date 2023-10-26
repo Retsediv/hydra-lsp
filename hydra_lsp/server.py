@@ -6,8 +6,9 @@ from lsprotocol import types as lsp_types
 from lsprotocol.types import CompletionItem, CompletionList, CompletionOptions
 from pygls.server import LanguageServer
 
+from hydra_lsp.context import HydraContext
 from hydra_lsp.hover import Hover
-from hydra_lsp.loader import ConfigLoader, HydraConfig
+from hydra_lsp.parser import ConfigParser
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ class HydraLSP(LanguageServer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.config_loaded: ConfigLoader = ConfigLoader()
-        self.context: HydraConfig | None = None
+        self.config_loaded: ConfigParser = ConfigParser(self)
+        self.context: HydraContext | None = None
 
         self.hoverer: Hover = Hover(self)
         self.debug_hover: bool = True
@@ -77,14 +78,7 @@ def definition(
     """Definition of a symbol."""
     logger.info(f"Definition feature is called with params: {params}")
 
-    # TODO: implement
-    return lsp_types.Location(
-        uri=params.text_document.uri,
-        range=lsp_types.Range(
-            start=lsp_types.Position(line=1, character=1),
-            end=lsp_types.Position(line=1, character=5),
-        ),
-    )
+    return server.hoverer.get_definition(params, server.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_REFERENCES)
@@ -93,9 +87,8 @@ def references(
 ) -> list[lsp_types.Location] | None:
     """Provide a list of references for the symbol at the current cursor position."""
     logger.info(f"References feature is called with params: {params}")
-    # TODO: implement
 
-    return []
+    return server.hoverer.get_references(params, server.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_HOVER)
@@ -103,7 +96,6 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     """Cursor over a symbol."""
     logger.info(f"Hover feature is called with params: {params}")
 
-    # TODO: implement
     return server.hoverer.get_hover(params, server.context, server.debug_hover)
 
 
