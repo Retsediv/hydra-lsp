@@ -20,3 +20,7 @@ hydra-lsp = "hydra_lsp.__main__:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# TODO: remove this warning filter when pygls will be updated and our parser will be using outdated API
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::PendingDeprecationWarning"]
