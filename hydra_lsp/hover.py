@@ -100,7 +100,7 @@ class Hover:
         """
         Get key from the yaml value (if exists).
         convert the line like this:
-            "foo: foo ${bar}/something else" -> "foo"
+            "foo: foo ${bar}/something else" -> "bar"
         given the position of the cursor (in this case, it's on the "b", "a" or "r" letter)
         """
         start = line.find(":")

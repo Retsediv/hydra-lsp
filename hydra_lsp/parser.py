@@ -216,13 +216,3 @@ class ConfigParser:
         config = self.load_yaml_config(config_path)
 
         return HydraContext(config, self.references, self.definitions)
-
-
-if __name__ == "__main__":
-    config_loader = ConfigParser()
-    config = config_loader.load("examples/config_ldm_precompute_dataset.yaml")
-    print(json.dumps(config.config, indent=2))
-
-    print("data: ", config.get("data"))
-    print("data.loader: ", config.get("data.loader"))
-    print("data.loader.batch_size: ", config.get("data.loader.batch_size"))
