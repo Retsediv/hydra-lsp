@@ -3,7 +3,13 @@ from importlib import metadata
 from typing import Any, List
 
 from lsprotocol import types as lsp_types
-from lsprotocol.types import CompletionItem, CompletionList, CompletionOptions
+from lsprotocol.types import (
+    CompletionItem,
+    CompletionList,
+    CompletionOptions,
+    WorkDoneProgressEnd,
+    WorkDoneProgressReport,
+)
 from pygls.server import LanguageServer
 
 from hydra_lsp.autocomplete import Completer
@@ -46,13 +52,18 @@ def initialize(ls: HydraLSP, params: lsp_types.InitializeParams) -> None:
     """Connection is initialized."""
     logger.info("Server is initialized")
 
+    ls.progress.report("init", WorkDoneProgressReport(message="HydraLSP: up"))
+
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_OPEN)
 def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
     """Document opened."""
     logger.info(f"Document opened: {params.text_document.uri}")
 
-    server.reload_config(params.text_document.uri)
+    ls.reload_config(params.text_document.uri)
+    ls.progress.report(
+        "context", WorkDoneProgressReport(message="HydraLSP: loaded context")
+    )
     # TODO: perform diagnostics
 
 
@@ -70,7 +81,10 @@ def did_save(ls: HydraLSP, params: lsp_types.DidSaveTextDocumentParams) -> None:
     """Document saved."""
     logger.info(f"Document saved: {params.text_document.uri}")
 
-    server.reload_config(params.text_document.uri)
+    ls.reload_config(params.text_document.uri)
+    ls.progress.report(
+        "context", WorkDoneProgressReport(message="HydraLSP: reloaded context")
+    )
     # TODO: decide if diagnostics should be performed on save
 
 
@@ -81,7 +95,7 @@ def definition(
     """Definition of a symbol."""
     logger.info(f"Definition feature is called with params: {params}")
 
-    return server.hoverer.get_definition(params, server.context)
+    return ls.hoverer.get_definition(params, ls.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_REFERENCES)
@@ -91,7 +105,7 @@ def references(
     """Provide a list of references for the symbol at the current cursor position."""
     logger.info(f"References feature is called with params: {params}")
 
-    return server.hoverer.get_references(params, server.context)
+    return ls.hoverer.get_references(params, ls.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_HOVER)
@@ -99,7 +113,7 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     """Cursor over a symbol."""
     logger.info(f"Hover feature is called with params: {params}")
 
-    return server.hoverer.get_hover(params, server.context, server.debug_hover)
+    return ls.hoverer.get_hover(params, ls.context, ls.debug_hover)
 
 
 @server.feature(
