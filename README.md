@@ -51,6 +51,7 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 - [x] Go through hydra documentation and double check its features
 - [x] Parse a single yaml (do not account for inheritance)
 - [x] Inheritance support
+- [ ] Try out the tree-sitter for parsing yaml 
 - [ ] Keep the current file's tree (given the inheritance) and more global context (for references etc.)
 - [ ] Test main components
 - [ ] Unify naming (instead of 'hydra-lsp', 'hydralsp' and 'hydra_lsp')
