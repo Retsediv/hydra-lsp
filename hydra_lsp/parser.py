@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -25,6 +24,7 @@ from ruamel.yaml.main import (
 )
 
 from hydra_lsp.context import Definitions, HydraContext, References
+from hydra_lsp.utils import deep_update
 
 logger = logging.getLogger(__name__)
 
@@ -199,9 +199,9 @@ class ConfigParser:
                     base_folder, f"{default_file_path}.yaml"
                 )
                 default_data = self.load_yaml_config(default_file_path)
-                result.update(default_data)
+                result = deep_update(result, default_data)
 
-        data.update(result)
+        data = deep_update(result, data)
         return data
 
     def load(self, config_path: str) -> HydraContext:

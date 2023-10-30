@@ -1,16 +1,17 @@
+import json
 import logging
 
 from lsprotocol import types as lsp_types
 from pygls.server import LanguageServer
 
 from hydra_lsp.parser import HydraContext
+from hydra_lsp.utils import to_markdown_content, yaml_get_key, yaml_get_variable_name
 
 logger = logging.getLogger(__name__)
 
 
 # TODO: this class has a lot of duplicated code
-# TODO: maybe we should divide this class or move everything to the server
-class Hover:
+class HydraIntel:
     def __init__(self, ls: LanguageServer) -> None:
         self.ls = ls
 
@@ -20,7 +21,14 @@ class Hover:
         context: HydraContext | None,
         debug_hover: bool = False,
     ) -> lsp_types.Hover | None:
-        """Get hover information."""
+        """
+        Get hover information:
+
+        - if the cursor is on the variable (after ':' and between '${' and '}'),
+            it will return the value of the variable.
+        - if the cursor is on the key (before ':'),
+            it will return the computed value of the key.
+        """
 
         document_path = params.text_document.uri
         document = self.ls.workspace.get_document(document_path)
@@ -34,14 +42,22 @@ class Hover:
             return None
 
         current_line = document.lines[position.line]
-        key = self._get_variable_name(current_line, position.character)
+        # check if the cursor is before or after the ':'
+        if position.character > current_line.find(":"):
+            key = yaml_get_variable_name(current_line, position.character)
+        else:
+            # TODO: currently it supports only top-level keys (no inner levels)
+            key = yaml_get_key(current_line, position.character)
+
         value = context.get(key) if key is not None else None
 
         if key is None or value is None:
             return None
 
-        return lsp_types.Hover(contents=f"""{value}""")
+        s = json.dumps({key: value}, indent=2)[1:-1]
+        return lsp_types.Hover(contents=to_markdown_content(s))
 
+    # TODO: get_definition and get_references are very similar, we should merge them somehow
     def get_definition(
         self,
         params: lsp_types.TextDocumentPositionParams,
@@ -57,7 +73,7 @@ class Hover:
         position = params.position
 
         current_line = document.lines[position.line]
-        key = self._get_variable_name(current_line, position.character)
+        key = yaml_get_variable_name(current_line, position.character)
 
         if context is None:
             logger.warning("Context is not loaded")
@@ -82,54 +98,17 @@ class Hover:
         position = params.position
 
         current_line = document.lines[position.line]
-        key = self._get_variable_name(current_line, position.character)
-        if key is None:
-            key = self._get_key(current_line, position.character)
+        key = yaml_get_variable_name(current_line, position.character)
 
         if context is None:
             logger.warning("Context is not loaded")
             return None
 
         if key is None:
+            key = yaml_get_key(current_line, position.character)
+
+        if key is None:
             return None
 
         logger.info(f"References of {key} are {context.references.get(key)}")
         return context.references.get(key)
-
-    def _get_key(self, line: str, position: int) -> str | None:
-        """
-        Get key from the yaml value (if exists).
-        convert the line like this:
-            "foo: foo ${bar}/something else" -> "bar"
-        given the position of the cursor (in this case, it's on the "b", "a" or "r" letter)
-        """
-        start = line.find(":")
-        if start == -1:
-            return None
-
-        if position > start:
-            return None
-
-        return line[:start].strip()
-
-    def _get_variable_name(self, line: str, position: int) -> str | None:
-        """
-        Get variable name from the yaml value (if exists).
-        convert the line like this:
-            "foo: foo ${bar}/something else" -> "bar"
-        given the position of the cursor (in this case, it's on the "b", "a" or "r" letter)
-        """
-        start = line.find(":")
-        if start == -1:
-            # TODO: Double check if there is case when it does not hold
-            return None
-
-        first_part_index = line.rfind("${", start, position)
-        if first_part_index == -1:
-            return None
-
-        second_part_index = line.find("}", position + 1)
-        if second_part_index == -1:
-            return None
-
-        return line[first_part_index + 2 : second_part_index]

@@ -4,17 +4,15 @@ from typing import Any, List
 
 from lsprotocol import types as lsp_types
 from lsprotocol.types import (
-    CompletionItem,
     CompletionList,
     CompletionOptions,
-    WorkDoneProgressEnd,
     WorkDoneProgressReport,
 )
 from pygls.server import LanguageServer
 
 from hydra_lsp.autocomplete import Completer
 from hydra_lsp.context import HydraContext
-from hydra_lsp.hover import Hover
+from hydra_lsp.hover import HydraIntel
 from hydra_lsp.parser import ConfigParser
 
 logger = logging.getLogger(__name__)
@@ -32,8 +30,7 @@ class HydraLSP(LanguageServer):
         self.config_loaded: ConfigParser = ConfigParser(self)
         self.context: HydraContext | None = None
 
-        self.hoverer: Hover = Hover(self)
-        self.debug_hover: bool = True
+        self.intel: HydraIntel = HydraIntel(self)
         self.completer: Completer = Completer()
 
     def reload_config(self, file_path: str) -> None:
@@ -95,7 +92,7 @@ def definition(
     """Definition of a symbol."""
     logger.info(f"Definition feature is called with params: {params}")
 
-    return ls.hoverer.get_definition(params, ls.context)
+    return ls.intel.get_definition(params, ls.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_REFERENCES)
@@ -105,7 +102,7 @@ def references(
     """Provide a list of references for the symbol at the current cursor position."""
     logger.info(f"References feature is called with params: {params}")
 
-    return ls.hoverer.get_references(params, ls.context)
+    return ls.intel.get_references(params, ls.context)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_HOVER)
@@ -113,7 +110,7 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     """Cursor over a symbol."""
     logger.info(f"Hover feature is called with params: {params}")
 
-    return ls.hoverer.get_hover(params, ls.context, ls.debug_hover)
+    return ls.intel.get_hover(params, ls.context)
 
 
 @server.feature(
