@@ -4,6 +4,7 @@
 
   src_data_paths:
     ambientcg: ${local_path}/datasets/ambientcg
+    tmp: ${trainer}/datasets/ambientcg
     polyhaven: ${local_path}/datasets/polyhaven
     material_scans: ${local_path}/datasets/material_scans
     radn: ${local_path}/datasets/radn_data/highres_data/train

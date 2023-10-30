@@ -44,4 +44,7 @@ class HydraContext:
         for k in key.split("."):
             value = value.get(k)
 
+            if value is None:
+                return None
+
         return value
