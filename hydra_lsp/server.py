@@ -1,13 +1,8 @@
 import logging
 from importlib import metadata
-from typing import Any, List
 
 from lsprotocol import types as lsp_types
-from lsprotocol.types import (
-    CompletionList,
-    CompletionOptions,
-    WorkDoneProgressReport,
-)
+from lsprotocol.types import CompletionList, WorkDoneProgressBegin, WorkDoneProgressEnd
 from pygls.server import LanguageServer
 
 from hydra_lsp.autocomplete import Completer
@@ -21,11 +16,10 @@ logger = logging.getLogger(__name__)
 class HydraLSP(LanguageServer):
     CONFIGURATION_SECTION: str = "hydralsp"
 
-    COMMAND_EVALUATE_LINE: str = "hydralsp.evaluate_line"
-    COMMAND_EVALUATE_SELECTION: str = "hydralsp.evaluate_selection"
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.init_params: lsp_types.InitializeParams | None = None
 
         self.config_loaded: ConfigParser = ConfigParser(self)
         self.context: HydraContext | None = None
@@ -48,8 +42,7 @@ server = HydraLSP("hydralsp", f"v{version}")
 def initialize(ls: HydraLSP, params: lsp_types.InitializeParams) -> None:
     """Connection is initialized."""
     logger.info("Server is initialized")
-
-    ls.progress.report("init", WorkDoneProgressReport(message="HydraLSP: up"))
+    ls.init_params = params
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_OPEN)
@@ -57,10 +50,10 @@ def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
     """Document opened."""
     logger.info(f"Document opened: {params.text_document.uri}")
 
+    ls.progress.begin("context", WorkDoneProgressBegin(title="loaded context"))
     ls.reload_config(params.text_document.uri)
-    ls.progress.report(
-        "context", WorkDoneProgressReport(message="HydraLSP: loaded context")
-    )
+    ls.progress.end("context", WorkDoneProgressEnd())
+
     # TODO: perform diagnostics
 
 
@@ -78,10 +71,10 @@ def did_save(ls: HydraLSP, params: lsp_types.DidSaveTextDocumentParams) -> None:
     """Document saved."""
     logger.info(f"Document saved: {params.text_document.uri}")
 
+    ls.progress.begin("context", WorkDoneProgressBegin(title="reloaded context"))
     ls.reload_config(params.text_document.uri)
-    ls.progress.report(
-        "context", WorkDoneProgressReport(message="HydraLSP: reloaded context")
-    )
+    ls.progress.end("context", WorkDoneProgressEnd())
+
     # TODO: decide if diagnostics should be performed on save
 
 
@@ -113,25 +106,7 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
     return ls.intel.get_hover(params, ls.context)
 
 
-@server.feature(
-    lsp_types.TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=[","])
-)
+@server.feature(lsp_types.TEXT_DOCUMENT_COMPLETION)
 def completions(params: lsp_types.CompletionParams) -> CompletionList:
     logger.info("Completions feature is called")
     return server.completer.get_completions(server, params)
-
-
-@server.command(HydraLSP.COMMAND_EVALUATE_LINE)
-def evaluate_line(ls: HydraLSP, params: List[Any]) -> None:
-    """Evaluate line under the cursor."""
-    logger.info(f"Evaluate line command is called with params: {params}")
-
-    # TODO: implement
-
-
-@server.command(HydraLSP.COMMAND_EVALUATE_SELECTION)
-def evaluate_selection(ls: HydraLSP, params: List[Any]) -> None:
-    """Evaluate selected text."""
-    logger.info(f"Evaluate selection command is called with params: {params}")
-
-    # TODO: implement
