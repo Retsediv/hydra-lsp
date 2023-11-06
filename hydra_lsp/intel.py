@@ -115,3 +115,31 @@ class HydraIntel:
 
         logger.info(f"References of {key} are {context.references.get(key)}")
         return context.references.get(key)
+
+    def get_diagnostics(self, context: HydraContext | None, doc_uri: str | None):
+        """Get diagnostics for the current context."""
+
+        if context is None:
+            logger.warning("Context is not loaded")
+            return None
+
+        diagnostics = []
+
+        for reference, locations in context.references.items():
+            if reference in context.definitions:
+                continue
+
+            for loc in locations:
+                if doc_uri is not None and loc.uri != doc_uri:
+                    continue
+
+                diagnostics.append(
+                    lsp_types.Diagnostic(
+                        range=loc.range,
+                        message=f"`{reference}` is not defined",
+                        source="hydra-lsp",
+                    )
+                )
+
+        logger.debug(f"Diagnostics: {diagnostics}")
+        return diagnostics

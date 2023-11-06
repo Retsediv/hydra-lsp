@@ -50,11 +50,12 @@ def did_open(ls: HydraLSP, params: lsp_types.DidOpenTextDocumentParams) -> None:
     """Document opened."""
     logger.info(f"Document opened: {params.text_document.uri}")
 
-    ls.progress.begin("context", WorkDoneProgressBegin(title="loaded context"))
+    ls.progress.begin("context", WorkDoneProgressBegin(title="Indexing"))
     ls.reload_config(params.text_document.uri)
-    ls.progress.end("context", WorkDoneProgressEnd())
 
-    # TODO: perform diagnostics
+    diagnostics = ls.intel.get_diagnostics(ls.context, params.text_document.uri)
+    ls.publish_diagnostics(params.text_document.uri, diagnostics)
+    ls.progress.end("context", WorkDoneProgressEnd())
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_CHANGE)
@@ -62,8 +63,8 @@ def did_change(ls: HydraLSP, params: lsp_types.DidChangeTextDocumentParams) -> N
     """Document changed."""
     logger.info(f"Document changed: {params.text_document.uri}")
 
+    # NOTE: perform diagnostics and reload config? (should it be done on every change?)
     # self.reload_config(params.text_document.uri)
-    # TODO: perform diagnostics (should it be done on every change?)
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DID_SAVE)
@@ -71,11 +72,12 @@ def did_save(ls: HydraLSP, params: lsp_types.DidSaveTextDocumentParams) -> None:
     """Document saved."""
     logger.info(f"Document saved: {params.text_document.uri}")
 
-    ls.progress.begin("context", WorkDoneProgressBegin(title="reloaded context"))
+    ls.progress.begin("context", WorkDoneProgressBegin(title="Indexing"))
     ls.reload_config(params.text_document.uri)
-    ls.progress.end("context", WorkDoneProgressEnd())
 
-    # TODO: decide if diagnostics should be performed on save
+    diagnostics = ls.intel.get_diagnostics(ls.context, params.text_document.uri)
+    ls.publish_diagnostics(params.text_document.uri, diagnostics)
+    ls.progress.end("context", WorkDoneProgressEnd())
 
 
 @server.feature(lsp_types.TEXT_DOCUMENT_DEFINITION)
