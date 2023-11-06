@@ -4,6 +4,8 @@
 
 To try it out, use the following code snippet in neovim.
 
+Note: If you are VS Code user - check out the [extension](https://github.com/retsediv/hydra-lsp-vscode).
+
 ```lua
 
 local lspconfig = require("lspconfig")
@@ -43,29 +45,3 @@ lspconfig.hydralsp.setup({
 ```
 
 Note: make sure to install hydra-lsp so that nvim can find an executable (`poetry install`)
-
-#### To-Do
-
-- [x] Setup lsprotocol and pygls, see how it works
-- [x] Basic skeleton
-- [x] Go through hydra documentation and double check its features
-- [x] Parse a single yaml (do not account for inheritance)
-- [x] Inheritance support
-- [x] Fix Autocomplete
-- [ ] Fix context loss!
-
-- [ ] Keep the current file's tree (given the inheritance) and more global context (for references etc.)
-- [ ] Try out the tree-sitter for parsing yaml
-- [ ] Check if hydra is installed in the current venv before starting up
-- [ ] Test main components
-
-#### Set of features to implement
-
-- [x] Look-up variable value and possibly doc-string
-- [x] Go to the definition of a variable
-- [x] Go to references of a variable
-- [x] Unroll the hydra file into the resulting config given inheritance and variables
-- [x] Autocomplete variable name [Autocomplete]
-- [x] Show unrolled config fields - 1st level of inheritance [Hover]
-- [ ] Show unrolled config fields - all levels of inheritance [Hover]
-- [ ] Check the validity of variables names [Diagnostics]
