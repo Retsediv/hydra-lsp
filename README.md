@@ -51,10 +51,13 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 - [x] Go through hydra documentation and double check its features
 - [x] Parse a single yaml (do not account for inheritance)
 - [x] Inheritance support
+- [x] Fix Autocomplete
+- [ ] Fix context loss!
+
 - [ ] Keep the current file's tree (given the inheritance) and more global context (for references etc.)
-- [ ] Test main components
-- [ ] Unify naming (instead of 'hydra-lsp', 'hydralsp' and 'hydra_lsp')
+- [ ] Try out the tree-sitter for parsing yaml
 - [ ] Check if hydra is installed in the current venv before starting up
+- [ ] Test main components
 
 #### Set of features to implement
 
@@ -63,7 +66,6 @@ Note: make sure to install hydra-lsp so that nvim can find an executable (`poetr
 - [x] Go to references of a variable
 - [x] Unroll the hydra file into the resulting config given inheritance and variables
 - [x] Autocomplete variable name [Autocomplete]
-- [ ] Custom commands to show unrolled config fields [Custom]
+- [x] Show unrolled config fields - 1st level of inheritance [Hover]
+- [ ] Show unrolled config fields - all levels of inheritance [Hover]
 - [ ] Check the validity of variables names [Diagnostics]
-- [ ] Go to the definition of a variable [Python]
-- [ ] Some kind mypy extensions to check types and possible runtime errors [Python]

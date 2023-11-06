@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -23,8 +22,10 @@ from ruamel.yaml.main import (
     StreamStartToken,
     ValueToken,
 )
+from ruamel.yaml.tokens import Token
 
 from hydra_lsp.context import Definitions, HydraContext, References
+from hydra_lsp.utils import deep_update
 
 logger = logging.getLogger(__name__)
 
@@ -44,22 +45,19 @@ def remove_from_base_key(base_key: str):
     return base_key.rsplit(".", 1)[0] if base_key else ""
 
 
-def get_file(
-    ls: LanguageServer | None, uri: str, lines: bool = False
-) -> List[str] | str:
+def get_file(ls: LanguageServer | None, uri: str) -> List[str]:
     if ls is not None:
         doc = ls.workspace.get_document(uri)
-        return doc.lines if lines else doc.source
+        return doc.lines
 
     uri = uri[len("file://") :] if uri.startswith("file://") else uri
     with open(uri) as f:
         f.seek(0)
         data = f.readlines()
-    return data if lines else "\n".join(data)
+
+    return data
 
 
-# TODO: config has to be reloaded on file change
-# TODO: context has to be global (in respect to the folder)
 class ConfigParser:
     """Load a Hydra YAML config file, looks for _defaults and loads respective files"""
 
@@ -69,10 +67,10 @@ class ConfigParser:
         self.references: References = defaultdict(list)
 
     def _get_raw_file(self, uri: str) -> List[str]:
-        return get_file(self.ls, uri, lines=True)
+        return get_file(self.ls, uri)
 
     def _get_yaml_file(self, uri: str) -> Dict:
-        data = get_file(self.ls, uri)
+        data = "".join(get_file(self.ls, uri))
 
         try:
             return ruamel.yaml.safe_load(data)
@@ -81,16 +79,15 @@ class ConfigParser:
             return {}
 
     def _get_yaml_tokens(self, uri: str) -> Generator:
-        data = get_file(self.ls, uri)
+        data = "".join(get_file(self.ls, uri))
+
         try:
             return ruamel.yaml.scan(data)
         except ruamel.yaml.YAMLError as e:
             logger.error(f"Error while parsing {uri}: {e}")
             raise GeneratorExit
 
-    def _get_location(
-        self, node: KeyToken | ValueToken | ScalarToken, filename: str
-    ) -> lsp_types.Location:
+    def _get_location(self, node: Token, filename: str) -> lsp_types.Location:
         return lsp_types.Location(
             uri=filename,
             range=lsp_types.Range(
@@ -181,17 +178,14 @@ class ConfigParser:
 
     def load_yaml_config(self, config_path: str) -> Dict:
         logger.info("Loading config from: {}".format(config_path))
-
         data = self._get_yaml_file(config_path)
-        self._update_context(config_path)
 
         # Recursively load default file (config inheritance)
-        result = {}
+        result: Dict = {}
         if "defaults" in data:
             base_folder = "/".join(config_path.split("/")[:-1])
 
             for default_file_path in data["defaults"]:
-                # TODO: Account for _self_ position in defaults list
                 if default_file_path == "_self_":
                     continue
 
@@ -199,20 +193,21 @@ class ConfigParser:
                     base_folder, f"{default_file_path}.yaml"
                 )
                 default_data = self.load_yaml_config(default_file_path)
-                result.update(default_data)
+                result = deep_update(result, default_data)
 
-        data.update(result)
+        data = deep_update(result, data)
+        self._update_context(config_path)
+
         return data
 
     def load(self, config_path: str) -> HydraContext:
         """
         Load the config from the file
         """
-        # Clear previous definitions and references
-        self.definitions = {}
-        self.references = defaultdict(list)
+        self.definitions.clear()
+        self.references.clear()
 
-        logger.info(f"Loaded config: {config_path}")
+        logger.info(f"Loaded config from: {config_path}")
         config = self.load_yaml_config(config_path)
 
         return HydraContext(config, self.references, self.definitions)

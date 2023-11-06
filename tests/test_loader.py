@@ -30,3 +30,4 @@ def test_inheritance(loader: ConfigParser):
     assert config.get("data.original_image_size") == [1024, 1024]
     assert config.get("data.nb_chn") == 10
     assert config.get("data.dataset.train.data_len") == -1
+    assert config.get("data.loader.batch_size") == 2
