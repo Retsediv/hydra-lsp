@@ -1,3 +1,4 @@
+import json
 import logging
 
 import pygtrie
@@ -41,9 +42,9 @@ class Completer:
             return CompletionList(is_incomplete=False, items=[])
 
         try:
-            kk = self.trie.keys(prefix)
+            keys = self.trie.keys(prefix)
         except KeyError:
-            kk = []
+            keys = []
 
         items = [
             CompletionItem(
@@ -51,7 +52,7 @@ class Completer:
                 kind=CompletionItemKind.Variable,
                 documentation=self._get_docstring(k),
             )
-            for k in kk
+            for k in keys
         ]
 
         return CompletionList(is_incomplete=False, items=items)
@@ -59,14 +60,7 @@ class Completer:
     def _get_docstring(self, key: str) -> MarkupContent:
         value = str(self.context.get(key))
 
-        result = to_markdown_content(
-            f"""
-            *Var*: `{key}`
-     ```
-     {value}
-     ```
-
-            """
-        )
+        s = json.dumps({key: value}, indent=2)[1:-1]
+        result = to_markdown_content(s)
 
         return result

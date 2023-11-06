@@ -7,7 +7,7 @@ from pygls.server import LanguageServer
 
 from hydra_lsp.autocomplete import Completer
 from hydra_lsp.context import HydraContext
-from hydra_lsp.hover import HydraIntel
+from hydra_lsp.intel import HydraIntel
 from hydra_lsp.parser import ConfigParser
 
 logger = logging.getLogger(__name__)

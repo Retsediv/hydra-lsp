@@ -42,12 +42,15 @@ class HydraIntel:
             return None
 
         current_line = document.lines[position.line]
+
         # check if the cursor is before or after the ':'
         if position.character > current_line.find(":"):
             key = yaml_get_variable_name(current_line, position.character)
         else:
-            # TODO: currently it supports only top-level keys (no inner levels)
-            key = yaml_get_key(current_line, position.character)
+            key = context.loc_to_definition.find_key_by_position(
+                position, document_path
+            )
+            logger.info(f"Key from position: {key}")
 
         value = context.get(key) if key is not None else None
 
