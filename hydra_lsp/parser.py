@@ -9,6 +9,7 @@ from lsprotocol import types as lsp_types
 from pygls.server import LanguageServer
 from ruamel.yaml.main import (
     BlockEndToken,
+    BlockEntryToken,
     BlockMappingStartToken,
     BlockSequenceStartToken,
     DocumentStartToken,
@@ -143,6 +144,7 @@ class ConfigParser:
                         ScalarToken,  # value
                         BlockMappingStartToken,  # inner block started
                         BlockSequenceStartToken,  # inner block ended
+                        BlockEntryToken, # - (in case of list of strings)
                         FlowSequenceStartToken,  # [
                         FlowSequenceEndToken,  # ]
                         FlowMappingStartToken,  # {
@@ -162,6 +164,9 @@ class ConfigParser:
                     continue
 
                 if t is FlowMappingStartToken:  # {
+                    continue
+
+                if t is BlockEntryToken: # - (in case of list of strings)
                     continue
 
                 #  ScalarToken
