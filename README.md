@@ -1,5 +1,11 @@
 # LSP for Hydra config files
 
+## Installation
+
+1. Using pypi: `pip install hydra-lsp`
+
+2. Using poetry: `poetry install`
+
 ## How to use
 
 To try it out, use the following code snippet in neovim.
