@@ -33,7 +33,7 @@ if not configs.hydralsp then
         default_config = {
             cmd = { "hydra-lsp" },
             root_dir = lspconfig.util.root_pattern(".git"),
-            filetypes = { "python" },
+            filetypes = { "yaml" },
         },
     }
 end
