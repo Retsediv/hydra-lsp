@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hydra_lsp.parser import ConfigParser
