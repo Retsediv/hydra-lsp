@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from typing import DefaultDict, Dict, List
@@ -6,6 +8,7 @@ from intervaltree import Interval, IntervalTree
 from lsprotocol import types as lsp_types
 
 logger = logging.getLogger(__name__)
+
 
 References = DefaultDict[str, List[lsp_types.Location]]
 Definitions = Dict[str, lsp_types.Location]

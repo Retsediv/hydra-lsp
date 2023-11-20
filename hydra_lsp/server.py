@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import logging
 from importlib import metadata
 
 from lsprotocol import types as lsp_types
-from lsprotocol.types import CompletionList, WorkDoneProgressBegin, WorkDoneProgressEnd
+from lsprotocol.types import (CompletionList, WorkDoneProgressBegin,
+                              WorkDoneProgressEnd)
 from pygls.server import LanguageServer
 
 from hydra_lsp.autocomplete import Completer

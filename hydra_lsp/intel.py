@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 
@@ -5,7 +7,8 @@ from lsprotocol import types as lsp_types
 from pygls.server import LanguageServer
 
 from hydra_lsp.parser import HydraContext
-from hydra_lsp.utils import to_markdown_content, yaml_get_key, yaml_get_variable_name
+from hydra_lsp.utils import (to_markdown_content, yaml_get_key,
+                             yaml_get_variable_name)
 
 logger = logging.getLogger(__name__)
 

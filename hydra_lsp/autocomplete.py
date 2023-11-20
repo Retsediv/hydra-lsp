@@ -1,14 +1,11 @@
+from __future__ import annotations
+
 import json
 import logging
 
 import pygtrie
-from lsprotocol.types import (
-    CompletionItem,
-    CompletionItemKind,
-    CompletionList,
-    CompletionParams,
-    MarkupContent,
-)
+from lsprotocol.types import (CompletionItem, CompletionItemKind,
+                              CompletionList, CompletionParams, MarkupContent)
 from pygls.server import LanguageServer
 
 from hydra_lsp.context import HydraContext
