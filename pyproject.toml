@@ -1,12 +1,17 @@
 [tool.poetry]
 name = "hydra-lsp"
-version = "0.1.0"
-description = ""
+version = "0.1.1"
+description = "Language server for Hydra YAML config files"
 authors = ["Andrii Zhuravchak <retsediv1@gmail.com>"]
 readme = "README.md"
+keywords = ["ls", "language-server", "yaml", "hydra"]
+
+[project.urls]
+Homepage = "https://github.com/Retsediv/hydra-lsp"
+Source = "https://github.com/Retsediv/hydra-lsp"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 pygls = "^1.1.1"
 lsprotocol = "^2023.0.0b1"
 pytest = "^7.4.2"
