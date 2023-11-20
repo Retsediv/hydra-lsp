@@ -7,6 +7,15 @@ readme = "README.md"
 keywords = ["ls", "language-server", "yaml", "hydra"]
 homepage = "https://github.com/Retsediv/hydra-lsp"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+mypy = "^1.7.0"
+isort = "^5.12.0"
+
 [tool.project.urls]
 "Homepage" = "https://github.com/Retsediv/hydra-lsp"
 "Source" = "https://github.com/Retsediv/hydra-lsp"
@@ -15,7 +24,6 @@ homepage = "https://github.com/Retsediv/hydra-lsp"
 python = "^3.8"
 pygls = "^1.1.1"
 lsprotocol = "^2023.0.0b1"
-pytest = "^7.4.2"
 ruamel-yaml = "^0.17.40"
 pygtrie = "^2.5.0"
 intervaltree = "^3.1.0"
