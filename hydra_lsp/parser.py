@@ -146,7 +146,7 @@ class ConfigParser:
                         ScalarToken,  # value
                         BlockMappingStartToken,  # inner block started
                         BlockSequenceStartToken,  # inner block ended
-                        BlockEntryToken, # - (in case of list of strings)
+                        BlockEntryToken,  # - (in case of list of strings)
                         FlowSequenceStartToken,  # [
                         FlowSequenceEndToken,  # ]
                         FlowMappingStartToken,  # {
@@ -168,7 +168,7 @@ class ConfigParser:
                 if t is FlowMappingStartToken:  # {
                     continue
 
-                if t is BlockEntryToken: # - (in case of list of strings)
+                if t is BlockEntryToken:  # - (in case of list of strings)
                     continue
 
                 #  ScalarToken
