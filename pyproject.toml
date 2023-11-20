@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hydra-lsp"
-version = "0.1.3a0"
+version = "0.1.3a1"
 description = "Language server for Hydra YAML config files"
 authors = ["Andrii Zhuravchak <retsediv1@gmail.com>"]
 readme = "README.md"
@@ -19,6 +19,7 @@ pytest = "^7.4.2"
 ruamel-yaml = "^0.17.40"
 pygtrie = "^2.5.0"
 intervaltree = "^3.1.0"
+importlib-metadata = "^6.8.0"
 
 
 [tool.poetry.scripts]
