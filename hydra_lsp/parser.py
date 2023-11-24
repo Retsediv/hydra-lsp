@@ -64,6 +64,8 @@ def get_file(ls: LanguageServer | None, uri: str) -> List[str]:
 class ConfigParser:
     """Load a Hydra YAML config file, looks for _defaults and loads respective files"""
 
+    __slots__ = ["ls", "definitions", "references"]
+
     def __init__(self, ls: LanguageServer | None = None):
         self.ls = ls
         self.definitions: Definitions = {}
