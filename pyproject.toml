@@ -37,6 +37,15 @@ hydra-lsp = "hydra_lsp.__main__:main"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.isort]
+multi_line_output = 3
+line_length = 88
+include_trailing_comma = true
+
 # TODO: remove this warning filter when pygls will be updated and our parser will be using outdated API
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::PendingDeprecationWarning"]
