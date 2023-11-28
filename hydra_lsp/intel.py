@@ -23,6 +23,7 @@ def intel(feature: str, context_required: bool = True):
     def wrapper(method):
         @wraps(method)
         def _impl(self, *args, **kwargs):
+            assert len(args) > 1, "Params or context is not loaded"
             logger.info(f"{feature} requested: {args[0]}")
 
             if context_required and args[1] is None:
