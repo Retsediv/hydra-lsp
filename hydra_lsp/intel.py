@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from functools import wraps
-from typing import Tuple
+from typing import Any, Callable, Concatenate, Optional, ParamSpec, Tuple, TypeVar
 
 from lsprotocol import types as lsp_types
 from pygls.server import LanguageServer
@@ -17,20 +17,35 @@ from hydra_lsp.utils import (
 )
 
 logger = logging.getLogger(__name__)
+LocParams = (
+    lsp_types.TextDocumentPositionParams
+    | lsp_types.HoverParams
+    | lsp_types.ReferenceParams
+)
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def intel(feature: str, context_required: bool = True):
-    def wrapper(method):
-        @wraps(method)
-        def _impl(self, *args, **kwargs):
-            assert len(args) > 1, "Params or context is not loaded"
-            logger.info(f"{feature} requested: {args[0]}")
+    def wrapper(
+        f: Callable[Concatenate[Any, LocParams, Optional[HydraContext], P], R]
+    ) -> Callable[..., R | None]:
+        @wraps(f)
+        def _impl(
+            _self,
+            params: LocParams,
+            context: Optional[HydraContext],
+            *args: P.args,
+            **kwargs: P.kwargs
+        ) -> R | None:
+            logger.info(f"{feature} requested: {params}")
 
-            if context_required and args[1] is None:
+            if context_required and context is None:
                 logger.warning("Context is not loaded")
                 return None
 
-            return method(self, *args, **kwargs)
+            return f(_self, params, context, *args, **kwargs)
 
         return _impl
 
@@ -43,9 +58,7 @@ class HydraIntel:
 
     def _get_location(
         self,
-        params: lsp_types.TextDocumentPositionParams
-        | lsp_types.HoverParams
-        | lsp_types.ReferenceParams,
+        params: LocParams,
     ) -> Tuple[str, TextDocument, lsp_types.Position]:
         document_path = params.text_document.uri
         document = self.ls.workspace.get_document(document_path)
@@ -55,7 +68,7 @@ class HydraIntel:
 
     @intel("Hover")
     def get_hover(
-        self, params: lsp_types.HoverParams, context: HydraContext | None
+        self, params: lsp_types.HoverParams, context: Optional[HydraContext]
     ) -> lsp_types.Hover | None:
         """
         Get hover information:
