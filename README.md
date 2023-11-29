@@ -1,5 +1,9 @@
 # LSP for Hydra config files
 
+![Test Workflow](https://github.com/retsediv/hydra-lsp/actions/workflows/test.yml/badge.svg)
+[![PyPi Version](https://badge.fury.io/py/hydra-lsp.svg)](https://pypi.python.org/pypi/hydra-lsp/)  
+
+
 ## Installation
 
 1. Using pypi: `pip install hydra-lsp`
