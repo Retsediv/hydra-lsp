@@ -16,6 +16,13 @@ LocationToDefinition = Dict[lsp_types.Location, str]
 
 
 class LocationKeyMap:
+    """
+    Build an interval tree to map a location to a key.
+    Also allows to find a key by non-exact location
+    """
+
+    __slots__ = ["file_to_tree"]
+
     def __init__(self):
         self.file_to_tree = defaultdict(IntervalTree)
 
@@ -50,6 +57,8 @@ class HydraContext:
     """
     Stores: YAML keys and values pairs
     """
+
+    __slots__ = ["config", "references", "definitions", "loc_to_definition"]
 
     def __init__(
         self,

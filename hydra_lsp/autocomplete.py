@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class Completer:
+    """
+    Simple prefix-tree based completer
+    """
+
+    __slots__ = ["context", "trie"]
+
     def __init__(self):
         self.context = None
         self.trie = pygtrie.CharTrie()

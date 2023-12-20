@@ -64,6 +64,8 @@ def get_file(ls: LanguageServer | None, uri: str) -> List[str]:
 class ConfigParser:
     """Load a Hydra YAML config file, looks for _defaults and loads respective files"""
 
+    __slots__ = ["ls", "definitions", "references"]
+
     def __init__(self, ls: LanguageServer | None = None):
         self.ls = ls
         self.definitions: Definitions = {}
@@ -111,73 +113,55 @@ class ConfigParser:
         base_key: str = ""
         prev_key: str = ""
 
-        # NOTE: may rewrite into match expression
         for token in tokens:
-            t = type(token)
-
-            if (
-                t is StreamStartToken
-                or t is DocumentStartToken
-                or t is BlockMappingStartToken
-                or t is FlowEntryToken
-                or t is FlowSequenceEndToken
-                or t is FlowMappingEndToken
-            ):
-                continue
-
-            if t is BlockEndToken:
-                base_key = remove_from_base_key(base_key)
-
-            elif t is KeyToken:
-                token = next(tokens)  # now it's ScalarToken
-                assert type(token) is ScalarToken
-
-                k = append_to_base_key(base_key, token.value)
-                self.definitions[k] = self._get_location(token, filename)
-                prev_key = token.value
-
-            elif t is ValueToken:
-                token = next(tokens)  # now it's ScalarToken or BlockMappingStartToken
-                t = type(token)
-
-                assert_type_is_any_of(
-                    t,
-                    [
-                        ScalarToken,  # value
-                        BlockMappingStartToken,  # inner block started
-                        BlockSequenceStartToken,  # inner block ended
-                        BlockEntryToken,  # - (in case of list of strings)
-                        FlowSequenceStartToken,  # [
-                        FlowSequenceEndToken,  # ]
-                        FlowMappingStartToken,  # {
-                        FlowMappingEndToken,  # }
-                    ],
-                    f"token is {token}",
-                )
-
-                if t is BlockMappingStartToken:  # Inner block started
-                    base_key += f".{prev_key}" if base_key else prev_key
+            match token:
+                case (
+                    StreamStartToken()
+                    | DocumentStartToken()
+                    | BlockMappingStartToken()
+                    | FlowEntryToken()
+                    | FlowSequenceEndToken()
+                    | FlowMappingEndToken()
+                ):
                     continue
 
-                if t is BlockSequenceStartToken:  # Inner block ended
-                    continue
+                case BlockEndToken():
+                    base_key = remove_from_base_key(base_key)
 
-                if t is FlowSequenceStartToken:  # [
-                    continue
+                case KeyToken():
+                    token = next(tokens)  # now it's ScalarToken
+                    assert type(token) is ScalarToken
 
-                if t is FlowMappingStartToken:  # {
-                    continue
+                    k = append_to_base_key(base_key, token.value)
+                    self.definitions[k] = self._get_location(token, filename)
+                    prev_key = token.value
 
-                if t is BlockEntryToken:  # - (in case of list of strings)
-                    continue
+                case ValueToken():
+                    n_token = next(tokens)
+                    # now it's ScalarToken or BlockMappingStartToken
 
-                #  ScalarToken
-                for var in self._get_variables(token):
-                    self.references[var].append(self._get_location(token, filename))
+                    match n_token:
+                        case ScalarToken():
+                            for var in self._get_variables(n_token):
+                                self.references[var].append( self._get_location(n_token, filename))
 
-            elif t is ScalarToken:
-                for var in self._get_variables(token):
-                    self.references[var].append(self._get_location(token, filename))
+                        case BlockMappingStartToken():
+                            base_key += f".{prev_key}" if base_key else prev_key
+
+                        case (
+                            BlockSequenceStartToken()
+                            | FlowSequenceStartToken()
+                            | FlowMappingStartToken()
+                            | BlockEntryToken()
+                        ):
+                            pass
+
+                        case _:
+                            raise ValueError(f"Unexpected token: {n_token}")
+
+                case ScalarToken():
+                    for var in self._get_variables(token):
+                        self.references[var].append(self._get_location(token, filename))
 
     def _update_context(self, filename: str):
         tokens = self._get_yaml_tokens(filename)

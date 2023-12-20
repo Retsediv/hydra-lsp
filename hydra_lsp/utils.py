@@ -29,9 +29,8 @@ def yaml_get_var_prefix(line: str, pos: int = 0) -> str | None:
 def yaml_get_key(line: str, position: int) -> str | None:
     """
     Get key from the yaml value (if exists).
-    convert the line like this:
-        "foo: foo ${bar}/something else" -> "bar"
-    given the position of the cursor (in this case, it's on the "b", "a" or "r" letter)
+    convert the line like this: "foo: woo ${bar}/something else" -> "foo"
+    given the position of the cursor (in this case, it's on or before ":")
     """
     start = line.find(":")
     if start == -1:
@@ -63,6 +62,10 @@ def yaml_get_variable_name(line: str, position: int) -> str | None:
         return None
 
     return line[first_part_index + 2 : second_part_index]
+
+
+def yaml_get_identifier(line: str, position: int) -> str | None:
+    return yaml_get_variable_name(line, position) or yaml_get_key(line, position)
 
 
 def deep_update(source, overrides):

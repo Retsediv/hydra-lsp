@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 class HydraLSP(LanguageServer):
     CONFIGURATION_SECTION: str = "hydralsp"
 
+    __slots__ = ["init_params", "config_loaded", "context", "intel", "completer"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -113,4 +115,5 @@ def hover(ls: HydraLSP, params: lsp_types.HoverParams) -> lsp_types.Hover | None
 @server.feature(lsp_types.TEXT_DOCUMENT_COMPLETION)
 def completions(params: lsp_types.CompletionParams) -> CompletionList:
     logger.info("Completions feature is called")
+
     return server.completer.get_completions(server, params)
