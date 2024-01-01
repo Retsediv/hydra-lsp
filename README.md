@@ -4,6 +4,11 @@
 [![PyPi Version](https://badge.fury.io/py/hydra-lsp.svg)](https://pypi.python.org/pypi/hydra-lsp/)  
 
 
+<p align="center">
+  <img src="icon_wide.png" alt="Hydra LSP" width="400"/>
+</p>
+
+
 ## Installation
 
 1. Using pypi: `pip install hydra-lsp`
