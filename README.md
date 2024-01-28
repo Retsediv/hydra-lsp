@@ -15,6 +15,10 @@
 
 2. Using poetry: `poetry install`
 
+## Features
+
+1. Ignore certain lines - if you do not want to perform diagnostics on specific line, then add `# hydra: skip` to the end of that line
+
 ## How to use
 
 To try it out, use the following code snippet in neovim.

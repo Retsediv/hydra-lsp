@@ -17,19 +17,19 @@ from hydra_lsp.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
 LocParams = (
     lsp_types.TextDocumentPositionParams
     | lsp_types.HoverParams
     | lsp_types.ReferenceParams
 )
-
 P = ParamSpec("P")
 R = TypeVar("R")
 
 
 def intel(feature: str, context_required: bool = True):
     def wrapper(
-        f: Callable[Concatenate[Any, LocParams, Optional[HydraContext], P], R]
+        f: Callable[Concatenate[Any, LocParams, Optional[HydraContext], P], R],
     ) -> Callable[..., R | None]:
         @wraps(f)
         def _impl(
@@ -37,7 +37,7 @@ def intel(feature: str, context_required: bool = True):
             params: LocParams,
             context: Optional[HydraContext],
             *args: P.args,
-            **kwargs: P.kwargs
+            **kwargs: P.kwargs,
         ) -> R | None:
             logger.info(f"{feature} requested: {params}")
 
@@ -149,6 +149,19 @@ class HydraIntel:
                 if doc_uri is not None and loc.uri != doc_uri:
                     continue
 
+                # check if there is "# hydra: skip" in the line
+                # if so, skip the diagnostic for that block
+                lines = self.ls.workspace.get_document(loc.uri).lines
+                skip = any(
+                    filter(
+                        lambda s: "# hydra: skip" in s,
+                        lines[loc.range.start.line : loc.range.end.line + 1],
+                    )
+                )
+
+                if skip:
+                    continue
+
                 diagnostics.append(
                     lsp_types.Diagnostic(
                         range=loc.range,
@@ -158,4 +171,5 @@ class HydraIntel:
                 )
 
         logger.debug(f"Diagnostics: {diagnostics}")
+
         return diagnostics

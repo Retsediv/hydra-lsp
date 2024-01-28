@@ -16,6 +16,8 @@
     max_epochs: 200
     check_val_every_n_epoch: 1
     num_sanity_val_steps: 0
+    bad: ${x}
+    bad_ignore: ${y} # hydra: skip
 
   data:
     data_path: ${local_path}/datasets/material_tensors/tensors
