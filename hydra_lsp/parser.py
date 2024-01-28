@@ -143,7 +143,9 @@ class ConfigParser:
                     match n_token:
                         case ScalarToken():
                             for var in self._get_variables(n_token):
-                                self.references[var].append( self._get_location(n_token, filename))
+                                self.references[var].append(
+                                    (self._get_location(n_token, filename), base_key)
+                                )
 
                         case BlockMappingStartToken():
                             base_key += f".{prev_key}" if base_key else prev_key
@@ -161,7 +163,9 @@ class ConfigParser:
 
                 case ScalarToken():
                     for var in self._get_variables(token):
-                        self.references[var].append(self._get_location(token, filename))
+                        self.references[var].append(
+                            (self._get_location(token, filename), base_key)
+                        )
 
     def _update_context(self, filename: str):
         tokens = self._get_yaml_tokens(filename)

@@ -113,6 +113,9 @@ class HydraIntel:
         if key is None:
             return None
 
+        # TODO: check if the key is relative, e.g. "..tag"
+        # if so, there will be nothing in context.definitions for that key
+
         logger.info(f"Definition of {key} is {context.definitions.get(key)}")
         return context.definitions.get(key)
 
@@ -123,13 +126,18 @@ class HydraIntel:
         """Get references of the variable."""
         document_path, document, position = self._get_location(params)
         current_line = document.lines[position.line]
-        key = yaml_get_identifier(current_line, position.character)
 
+        key = yaml_get_identifier(current_line, position.character)
         if key is None:
             return None
 
-        logger.info(f"References of {key} are {context.references.get(key)}")
-        return context.references.get(key)
+        references = context.references.get(key)
+        if references is None:
+            return None
+
+        locations = [loc for loc, _ in references]
+        logger.info(f"References of {key} are {locations}")
+        return locations
 
     def get_diagnostics(self, context: HydraContext | None, doc_uri: str | None):
         """Get diagnostics for the current context."""
@@ -145,19 +153,19 @@ class HydraIntel:
             if reference in context.definitions:
                 continue
 
-            for loc in locations:
+            for loc, base_key in locations:
                 if doc_uri is not None and loc.uri != doc_uri:
+                    continue
+
+                # check if the key has a relative path
+                if context.get(reference, base_key) is not None:
                     continue
 
                 # check if there is "# hydra: skip" in the line
                 # if so, skip the diagnostic for that block
                 lines = self.ls.workspace.get_document(loc.uri).lines
-                skip = any(
-                    filter(
-                        lambda s: "# hydra: skip" in s,
-                        lines[loc.range.start.line : loc.range.end.line + 1],
-                    )
-                )
+                lines_to_inspect = lines[loc.range.start.line : loc.range.end.line + 1]
+                skip = any(filter(lambda s: "# hydra: skip" in s, lines_to_inspect))
 
                 if skip:
                     continue

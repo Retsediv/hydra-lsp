@@ -1,13 +1,11 @@
 # LSP for Hydra config files
 
 ![Test Workflow](https://github.com/retsediv/hydra-lsp/actions/workflows/test.yml/badge.svg)
-[![PyPi Version](https://badge.fury.io/py/hydra-lsp.svg)](https://pypi.python.org/pypi/hydra-lsp/)  
-
+[![PyPi Version](https://badge.fury.io/py/hydra-lsp.svg)](https://pypi.python.org/pypi/hydra-lsp/)
 
 <p align="center">
   <img src="icon_wide.png" alt="Hydra LSP" width="400"/>
 </p>
-
 
 ## Installation
 
@@ -62,5 +60,11 @@ lspconfig.hydralsp.setup({
 })
 
 ```
+
+## Todos and known bugs:
+
+1. Relative keys. Using keys like `${.name}` or `${..name}` won't result in a diagnostics error, however the "go to definition" feature won't work on them.
+
+2. Relative keys. "Go to reference" won't work if keys are not matching (or they are in different level).
 
 Note: make sure to install hydra-lsp so that nvim can find an executable (`poetry install`)

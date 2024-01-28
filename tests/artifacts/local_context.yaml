@@ -1,0 +1,20 @@
+train_schedule:
+  var: "${train_schedule.name}"
+  name: "rocket"
+  vae:
+    train: True
+    unfreeze_epoch: -1
+    type: "reconstruction"
+    version: 400
+    cont: False
+    tag: "${..name}_reconstruction"
+    desc: "Training reconstruction with tag - ${.tag} "
+  ldm:
+    train: False
+    unfreeze_epoch: -1
+    type: "reconstruction"
+    version: 303
+    cont: False
+    swa_epoch_start: -1
+    tag: "${..name}_ldm"
+    desc: "Training LDM with tag - ${.tag} "
