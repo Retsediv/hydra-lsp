@@ -131,8 +131,11 @@ class HydraIntel:
         if key is None:
             return None
 
-        logger.info(f"References of {key} are {context.references.get(key)}")
-        return context.references.get(key)
+        references = context.references.get(key)
+        locations = [loc for loc, _ in references]
+
+        logger.info(f"References of {key} are {locations}")
+        return locations
 
     def get_diagnostics(self, context: HydraContext | None, doc_uri: str | None):
         """Get diagnostics for the current context."""
@@ -152,19 +155,15 @@ class HydraIntel:
                 if doc_uri is not None and loc.uri != doc_uri:
                     continue
 
-                # relative path key
+                # check if the key has a relative path
                 if context.get(reference, base_key) is not None:
                     continue
 
                 # check if there is "# hydra: skip" in the line
                 # if so, skip the diagnostic for that block
                 lines = self.ls.workspace.get_document(loc.uri).lines
-                skip = any(
-                    filter(
-                        lambda s: "# hydra: skip" in s,
-                        lines[loc.range.start.line : loc.range.end.line + 1],
-                    )
-                )
+                lines_to_inspect = lines[loc.range.start.line : loc.range.end.line + 1]
+                skip = any(filter(lambda s: "# hydra: skip" in s, lines_to_inspect))
 
                 if skip:
                     continue
