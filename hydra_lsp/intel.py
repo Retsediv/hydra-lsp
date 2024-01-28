@@ -126,14 +126,16 @@ class HydraIntel:
         """Get references of the variable."""
         document_path, document, position = self._get_location(params)
         current_line = document.lines[position.line]
-        key = yaml_get_identifier(current_line, position.character)
 
+        key = yaml_get_identifier(current_line, position.character)
         if key is None:
             return None
 
         references = context.references.get(key)
-        locations = [loc for loc, _ in references]
+        if references is None:
+            return None
 
+        locations = [loc for loc, _ in references]
         logger.info(f"References of {key} are {locations}")
         return locations
 
