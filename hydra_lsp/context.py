@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from typing import DefaultDict, Dict, List
+from typing import DefaultDict, Dict, List, Tuple
 
 from intervaltree import Interval, IntervalTree
 from lsprotocol import types as lsp_types
@@ -10,7 +10,10 @@ from lsprotocol import types as lsp_types
 logger = logging.getLogger(__name__)
 
 
-References = DefaultDict[str, List[lsp_types.Location]]
+# References = DefaultDict[str, List[lsp_types.Location]]
+
+# Tuple of (location, parent_key)
+References = DefaultDict[str, List[Tuple[lsp_types.Location, str]]]
 Definitions = Dict[str, lsp_types.Location]
 LocationToDefinition = Dict[lsp_types.Location, str]
 
@@ -76,14 +79,37 @@ class HydraContext:
     def set(self, key: str, value: str):
         raise NotImplementedError
 
-    def get(self, key: str):
+    def get(self, key: str, parent_key: str = "") -> str | None:
         """
         Get a value from the config:
             1. Using a standard dict notation (e.g. config["data"])
             2. Using a dot notation (e.g. config["data.loader"])
+            3. Using a relative dot notation (e.g. key = ".loader" or key = "..tag")
 
         Will return None if the key is not found
         """
+
+        logger.debug(f"Getting {key} with parent {parent_key}")
+
+        # This is to handle the case when the key is relative to the parent
+        # e.g. key = ".loader", parent_key = "data" -> key = "data.loader"
+        # or key = "..tag", parent_key = "data.loader" -> key = "data.tag"
+        if parent_key and key.startswith("."):
+            j = 1  # skip the first dot
+            # key = key[1:]  # skip the first dot
+
+            parts = parent_key.split(".")
+            for j in range(1, len(key)):
+                c = key[j]
+                if c == "." and parts:
+                    parts.pop()
+                else:
+                    break
+
+            parts.append(key[j:])
+            key = ".".join(parts)
+            return self.get(key)
+
         if "." not in key:
             return self.config.get(key)
 

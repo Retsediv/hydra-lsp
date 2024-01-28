@@ -113,6 +113,9 @@ class HydraIntel:
         if key is None:
             return None
 
+        # TODO: check if the key is relative, e.g. "..tag"
+        # if so, there will be nothing in context.definitions for that key
+
         logger.info(f"Definition of {key} is {context.definitions.get(key)}")
         return context.definitions.get(key)
 
@@ -145,8 +148,12 @@ class HydraIntel:
             if reference in context.definitions:
                 continue
 
-            for loc in locations:
+            for loc, base_key in locations:
                 if doc_uri is not None and loc.uri != doc_uri:
+                    continue
+
+                # relative path key
+                if context.get(reference, base_key) is not None:
                     continue
 
                 # check if there is "# hydra: skip" in the line
