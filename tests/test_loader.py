@@ -38,3 +38,4 @@ def test_inheritance(loader: ConfigParser):
 def test_overridable_defaults(loader: ConfigParser):
     config = loader.load("tests/artifacts/config_overridable_defaults.yaml")
     assert config.get("dataset.name") == "ImageNet"
+    assert config.get("local_path") == "/my/mnt/disk"
