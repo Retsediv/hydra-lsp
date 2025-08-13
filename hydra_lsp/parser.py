@@ -5,6 +5,7 @@ import os
 import re
 from collections import defaultdict
 from typing import Dict, Generator, List
+from pathlib import Path
 
 import ruamel.yaml
 from lsprotocol import types as lsp_types
@@ -143,7 +144,9 @@ class ConfigParser:
                     match n_token:
                         case ScalarToken():
                             for var in self._get_variables(n_token):
-                                self.references[var].append( self._get_location(n_token, filename))
+                                self.references[var].append(
+                                    self._get_location(n_token, filename)
+                                )
 
                         case BlockMappingStartToken():
                             base_key += f".{prev_key}" if base_key else prev_key
@@ -174,17 +177,24 @@ class ConfigParser:
         # Recursively load default file (config inheritance)
         result: Dict = {}
         if "defaults" in data:
-            base_folder = "/".join(config_path.split("/")[:-1])
+            base_folder = Path(config_path).parent
 
             for default_file_path in data["defaults"]:
                 if default_file_path == "_self_":
                     continue
 
-                default_file_path = os.path.join(
-                    base_folder, f"{default_file_path}.yaml"
-                )
-                default_data = self.load_yaml_config(default_file_path)
-                result = deep_update(result, default_data)
+                if isinstance(default_file_path, dict):
+                    keys = list(default_file_path.keys())
+                    assert len(keys) == 1, "Only one key is expected in defaults dict"
+                    default_file_path = (
+                        base_folder / keys[0] / f"{default_file_path[keys[0]]}.yaml"
+                    )
+                    default_data = self.load_yaml_config(str(default_file_path))
+                    result[keys[0]] = default_data
+                else:
+                    default_file_path = base_folder / f"{default_file_path}.yaml"
+                    default_data = self.load_yaml_config(str(default_file_path))
+                    result = deep_update(result, default_data)
 
         data = deep_update(result, data)
         self._update_context(config_path)
